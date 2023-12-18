@@ -4,7 +4,7 @@
 #include <opencv4/opencv2/opencv.hpp>
 
 int main() {
-  std::string imagePath = "../assets/rei.jpg";
+  std::string imagePath = "/home/breslow/work/cpp/tool/opencv/reversePhoto/assets/fern.png";
   cv::Mat image = cv::imread(imagePath, cv::IMREAD_COLOR);
 
   if (image.empty()) {
