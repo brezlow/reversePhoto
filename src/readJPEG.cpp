@@ -4,7 +4,7 @@
 #include <opencv4/opencv2/opencv.hpp>
 
 int main() {
-  std::string imagePath = "assert/rei.jpg";
+  std::string imagePath = "../assets/rei.jpg";
   cv::Mat image = cv::imread(imagePath, cv::IMREAD_COLOR);
 
   if (image.empty()) {

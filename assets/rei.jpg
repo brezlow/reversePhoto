@@ -1,0 +1,6 @@
+--2023-12-18 16:47:18--  https://i.pximg.net/img-original/img/2021/06/10/21/56/59/90462441_p0.jpg
+Loaded CA certificate '/etc/ssl/certs/ca-certificates.crt'
+Connecting to 172.25.192.1:7890... connected.
+Proxy request sent, awaiting response... 403 Forbidden
+2023-12-18 16:47:19 ERROR 403: Forbidden.
+
