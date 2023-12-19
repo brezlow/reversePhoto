@@ -4,7 +4,9 @@ add_requires("opencv")
 
 target("reversePhoto")
     set_kind("binary")
-    add_files("src/readJPEG.cpp")
+    add_files("src/*.cpp")
+    add_files("src/*.h")
+    --add_files("src/readJPEG.cpp")
     add_packages("opencv")
 
 --
