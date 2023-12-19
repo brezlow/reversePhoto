@@ -1,5 +1,5 @@
 #include "imageReader.h"
-#include "ImageProcessor.h"
+#include "imageProcessor.h"
 #include <fstream>
 #include <iostream>
 

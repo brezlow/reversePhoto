@@ -1,4 +1,4 @@
-#include "ImageProcessor.h"
+#include "imageProcessor.h"
 #include <cstdint>
 #include <iostream>
 

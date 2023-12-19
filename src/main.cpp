@@ -1,9 +1,21 @@
+#include "imageReader.h"
 #include <iostream>
+#include <string>
 
-using namespace std;
+int main() {
+  ImageReader reader;
 
-int main(int argc, char** argv)
-{
-    cout << "hello world!" << endl;
-    return 0;
+  // 指定要加载的图像文件的路径
+  std::string filePath = "/home/breslow/work/cpp/tool/opencv/reversePhoto/assets/bmpSample.bmp";
+
+  // 使用 ImageReader 加载并处理图像
+  bool result = reader.loadImage(filePath);
+
+  if (!result) {
+    std::cerr << "图像加载失败。" << std::endl;
+    return 1; // 返回错误码
+  }
+
+  std::cout << "图像加载和处理成功。" << std::endl;
+  return 0; // 成功执行
 }
