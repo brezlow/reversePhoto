@@ -6,7 +6,7 @@ int main() {
   ImageReader reader;
 
   // 指定要加载的图像文件的路径
-  std::string filePath = "/home/breslow/work/cpp/tool/opencv/reversePhoto/assets/bmpSample.bmp";
+  std::string filePath = "/home/breslow/work/cpp/tool/opencv/reversePhoto/assets/fern.bmp";
 
   // 使用 ImageReader 加载并处理图像
   bool result = reader.loadImage(filePath);

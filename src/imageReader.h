@@ -33,5 +33,9 @@ public:
   ~ImageReader();
   bool loadImage(const std::string &filePath);
 
+  void saveGrayImage(const std::string &filePath,
+                     const std::vector<uint8_t> &grayImageData, int width,
+                     int height);
+
 private:
 };
