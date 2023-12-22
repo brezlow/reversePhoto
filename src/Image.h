@@ -1,10 +1,10 @@
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
 
 namespace feiteng {
-	
+
 #pragma pack(push, 1)
 struct BitmapFileHeader {
   uint16_t fileType;
@@ -33,27 +33,27 @@ struct BitmapInfoHeader {
 
 class Image {
 public:
-	Image() noexcept(true);
-	Image(const std::string& filePath);
-	~Image();
-	
-	Image& load(const std::string &filePath);
-	Image& saveGrayImage(std::string newFilePath = "");
-	Image& print();
-	Image& toGray();
+  Image() noexcept(true);
+  Image(const std::string &filePath);
+  ~Image();
+
+  Image &load(const std::string &filePath);
+  Image &saveGrayImage(std::string newFilePath = "");
+  Image &print();
+  Image &toGray();
 
 protected:
-	Image& push();
-	Image& pop();
+  Image &push();
+  Image &pop();
 
 private:
-	bool					m_isInitial{false};
-	std::string				m_originalFilePath;
-	BitmapFileHeader 		m_fileHeader{};
-	BitmapInfoHeader 		m_infoHeader{};
-	std::vector<uint8_t> 	m_imageData{};
-	
-	std::unique_ptr<Image>	m_lastImage{};
+  bool m_isInitial{false};
+  std::string m_originalFilePath;
+  BitmapFileHeader m_fileHeader{};
+  BitmapInfoHeader m_infoHeader{};
+  std::vector<uint8_t> m_imageData{};
+
+  std::shared_ptr<Image> m_lastImage{};
 };
 
-}
+} // namespace feiteng

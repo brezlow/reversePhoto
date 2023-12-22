@@ -3,12 +3,11 @@ add_rules("mode.debug", "mode.release")
 add_requires("opencv")
 
 target("reversePhoto")
-    set_kind("binary")
-    add_files("src/main.cpp")
-    add_files("src/imageReader.cpp")
-    add_files("src/imageProcessor.cpp")
-    --add_files("src/readJPEG.cpp")
-    add_packages("opencv")
+set_kind("binary")
+add_files("src/main.cpp")
+add_files("src/Image.cpp")
+--add_files("src/readJPEG.cpp")
+add_packages("opencv")
 
 --
 -- If you want to known more usage about xmake, please see https://xmake.io
@@ -78,4 +77,3 @@ target("reversePhoto")
 --
 -- @endcode
 --
-

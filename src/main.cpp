@@ -1,21 +1,23 @@
-#include "imageReader.h"
+#include "Image.h"
 #include <iostream>
 #include <string>
+#include <sys/types.h>
 
 int main() {
-  ImageReader reader;
 
-  // 指定要加载的图像文件的路径
-  std::string filePath = "/home/breslow/work/cpp/tool/opencv/reversePhoto/assets/fern.bmp";
+  try {
+    feiteng::Image myImage(
+        "/home/breslow/work/cpp/tool/opencv/reversePhoto/assets/fern.bmp");
 
-  // 使用 ImageReader 加载并处理图像
-  bool result = reader.loadImage(filePath);
+    // myImage.print();
+    myImage.toGray();
 
-  if (!result) {
-    std::cerr << "图像加载失败。" << std::endl;
-    return 1; // 返回错误码
+    myImage.saveGrayImage(
+        "/home/breslow/work/cpp/tool/opencv/reversePhoto/assets/fe1111.bmp");
+  } catch (const std::exception &e) {
+    std::cerr << "wrong: " << e.what() << std::endl;
+    return 1;
   }
 
-  std::cout << "图像加载和处理成功。" << std::endl;
-  return 0; // 成功执行
+  return 0;
 }
