@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 
 namespace feiteng {
 
@@ -36,6 +37,8 @@ Image &Image::load(const std::string &filePath) {
           std::to_string(loadedImage.m_infoHeader.bitsPerPixel) +
           " bits per pixel.\n");
     }
+    // 忽略color palette
+    file.seekg(m_fileHeader.pixelDataOffset, std::ios::beg);
 
     // 读取像素数据
     int pixelDataSize = loadedImage.m_infoHeader.imageWidth * 3;
@@ -106,8 +109,27 @@ Image &Image::toGray() {
 
   // 创建灰度图像
   Image grayImage;
-  grayImage.m_infoHeader = m_infoHeader;
+  grayImage.m_fileHeader.fileType = 0x4D42; //"BM"
+  grayImage.m_fileHeader.reserved1 = 0;
+  grayImage.m_fileHeader.reserved2 = 0;
+  grayImage.m_fileHeader.pixelDataOffset =
+      sizeof(BitmapFileHeader) + sizeof(BitmapInfoHeader) + 256 * 4;
+
+  grayImage.m_infoHeader.headerSize = sizeof(BitmapInfoHeader);
+  grayImage.m_infoHeader.imageWidth = m_infoHeader.imageWidth;
+  grayImage.m_infoHeader.imageHeight = m_infoHeader.imageHeight;
   grayImage.m_infoHeader.bitsPerPixel = 8; // 灰度图像为8位
+  grayImage.m_infoHeader.compression = 0;
+  grayImage.m_infoHeader.imageSize =
+      m_infoHeader.imageHeight * (m_infoHeader.imageWidth + 3) &
+      (~3); // 计算行大小并四字节对齐
+  grayImage.m_infoHeader.xPixelsPerMeter = 0;
+  grayImage.m_infoHeader.yPixelsPerMeter = 0;
+  grayImage.m_infoHeader.totalColors = 256;
+  grayImage.m_infoHeader.importantColors = 256;
+
+  grayImage.m_fileHeader.fileSize =
+      grayImage.m_fileHeader.pixelDataOffset + grayImage.m_infoHeader.imageSize;
 
   // 遍历每个像素并计算灰度值
   for (size_t i = 0; i < m_imageData.size(); i += 3) {
@@ -134,7 +156,13 @@ Image &Image::saveGrayImage(std::string newFilePath) {
 
   // 如果未提供新文件路径，则使用默认命名规则
   if (newFilePath.empty()) {
-    newFilePath = m_originalFilePath + "_gray.bmp";
+    newFilePath = m_originalFilePath;
+  }
+  size_t extensionPos = newFilePath.rfind('.');
+  if (extensionPos != std::string::npos) {
+    newFilePath.replace(extensionPos, std::string::npos, "_gray.bmp");
+  } else {
+    newFilePath += "_gray.bmp";
   }
 
   // 创建并写入灰度图像文件
@@ -143,8 +171,10 @@ Image &Image::saveGrayImage(std::string newFilePath) {
     throw std::runtime_error("Unable to open file for writing: " + newFilePath +
                              "\n");
   }
-
-  // ... （与之前相似的文件头和信息头的写入）
+  outFile.write(reinterpret_cast<const char *>(&m_fileHeader),
+                sizeof(m_fileHeader));
+  outFile.write(reinterpret_cast<const char *>(&m_infoHeader),
+                sizeof(m_infoHeader));
 
   // 写入256色的灰度调色板
   for (int i = 0; i < 256; ++i) {
@@ -166,6 +196,7 @@ Image &Image::saveGrayImage(std::string newFilePath) {
       outFile.write(padding, rowSize - m_infoHeader.imageWidth);
     }
   }
+  outFile.close();
 
   return *this;
 }
