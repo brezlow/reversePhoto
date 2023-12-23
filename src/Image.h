@@ -41,6 +41,7 @@ public:
   Image &saveGrayImage(std::string newFilePath = "");
   Image &print();
   Image &toGray();
+  Image &RGBtoHSV();
 
 protected:
   Image &push();
@@ -52,6 +53,7 @@ private:
   BitmapFileHeader m_fileHeader{};
   BitmapInfoHeader m_infoHeader{};
   std::vector<uint8_t> m_imageData{};
+  std::vector<std::vector<double>> hsvColors{};
 
   std::shared_ptr<Image> m_lastImage{};
 };

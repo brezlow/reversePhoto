@@ -1,4 +1,6 @@
 #include "Image.h"
+#include <algorithm>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -73,7 +75,54 @@ Image &Image::print() {
         "This object is empty, can't call Image::print function.\n");
   }
 
-  // 输出像素信息
+  if (!hsvColors.empty()) {
+    std::cout << "Pixel`s HSV \n";
+    for (const auto &hsv : hsvColors) {
+      std::cout << "Hue: " << hsv[0] << ", Saturation: " << hsv[1]
+                << ", Value: " << hsv[2] << "\n";
+    }
+  } else {
+
+    // 输出像素信息
+    const int height = m_infoHeader.imageHeight;
+    const int width = m_infoHeader.imageWidth;
+    const int bitsPerPixel = m_infoHeader.bitsPerPixel;
+
+    if (bitsPerPixel != 24) {
+      throw std::runtime_error("bitsPerPixel error.\n");
+    }
+
+    for (int y = 0; y < height; ++y) {
+      for (int x = 0; x < width; ++x) {
+        int pixelIndex = (y * width + x) * (bitsPerPixel / 8);
+
+        uint8_t blue = m_imageData[pixelIndex];
+        uint8_t green = m_imageData[pixelIndex + 1];
+        uint8_t red = m_imageData[pixelIndex + 2];
+
+        // 输出每个像素的颜色
+        std::cout << "Pixel at (" << x << ", " << y << "): "
+                  << "Red: " << static_cast<int>(red)
+                  << ", Green: " << static_cast<int>(green)
+                  << ", Blue: " << static_cast<int>(blue) << "\n";
+      }
+    }
+  }
+  return *this;
+}
+Image &Image::RGBtoHSV() {
+  if (!m_isInitial) {
+    throw std::runtime_error(
+        "This object is empty, can't call Image::print function.\n");
+  }
+
+  if (!hsvColors.empty()) {
+    std::cerr << "This Image has hsv information"
+              << "\n";
+
+    hsvColors.clear();
+  }
+
   const int height = m_infoHeader.imageHeight;
   const int width = m_infoHeader.imageWidth;
   const int bitsPerPixel = m_infoHeader.bitsPerPixel;
@@ -90,14 +139,37 @@ Image &Image::print() {
       uint8_t green = m_imageData[pixelIndex + 1];
       uint8_t red = m_imageData[pixelIndex + 2];
 
-      // 输出每个像素的颜色
-      std::cout << "Pixel at (" << x << ", " << y << "): "
-                << "Red: " << static_cast<int>(red)
-                << ", Green: " << static_cast<int>(green)
-                << ", Blue: " << static_cast<int>(blue) << "\n";
+      // 归一化RGB的值到[0,1]
+      double R = red / 255.0;
+      double G = green / 255.0;
+      double B = blue / 255.0;
+
+      double Cmax = std::max({R, G, B});
+      double Cmin = std::min({R, G, B});
+      double delta = Cmax - Cmin;
+
+      double H, S, V;
+
+      V = Cmax;
+
+      S = (Cmax > 0.0) ? delta / Cmax : 0.0;
+
+      if (delta > 0.0) {
+        if (Cmax == R) {
+          H = 60.0 * std::fmod((G - B) / delta, 6.0);
+        } else if (Cmax == G) {
+          H = 60.0 * ((B - R) / delta + 2.0);
+        } else if (Cmax == B) {
+          H = 60.0 * ((R - G) / delta + 4.0);
+        }
+
+        H = (H < 0.0) ? H + 360.0 : H;
+      } else {
+        H = 0.0;
+      }
+      hsvColors.push_back({H, S, V});
     }
   }
-
   return *this;
 }
 

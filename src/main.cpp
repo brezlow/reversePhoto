@@ -9,9 +9,9 @@ int main() {
     feiteng::Image myImage(
         "/home/breslow/work/cpp/tool/opencv/reversePhoto/assets/fern.bmp");
 
-    // myImage.print();
-    myImage.toGray();
-    myImage.saveGrayImage("/home/breslow/work/cpp/tool/opencv/reversePhoto/assets/fern1.bmp");
+    myImage.RGBtoHSV();
+    myImage.print();
+    // myImage.saveGrayImage("/home/breslow/work/cpp/tool/opencv/reversePhoto/assets/fern1.bmp");
 
   } catch (const std::exception &e) {
     std::cerr << "wrong: " << e.what() << std::endl;
