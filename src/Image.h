@@ -50,11 +50,11 @@ protected:
 
 private:
   bool m_isInitial{false};
+  bool m_isHSV{false};
   std::string m_originalFilePath;
   BitmapFileHeader m_fileHeader{};
   BitmapInfoHeader m_infoHeader{};
   std::vector<uint8_t> m_imageData{};
-  std::vector<std::vector<double>> hsvColors{};
 
   std::shared_ptr<Image> m_lastImage{};
 };

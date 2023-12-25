@@ -6,7 +6,8 @@ target("reversePhoto")
 set_kind("binary")
 add_files("src/main.cpp")
 add_files("src/Image.cpp")
---add_files("src/readJPEG.cpp")
+-- add_files("src/opencvRead.cpp")
+
 add_packages("opencv")
 
 --

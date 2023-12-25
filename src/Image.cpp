@@ -1,6 +1,7 @@
 #include "Image.h"
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
@@ -75,32 +76,31 @@ Image &Image::print() {
         "This object is empty, can't call Image::print function.\n");
   }
 
-  if (!hsvColors.empty()) {
-    std::cout << "Pixel`s HSV \n";
-    for (const auto &hsv : hsvColors) {
-      std::cout << "Hue: " << hsv[0] << ", Saturation: " << hsv[1]
-                << ", Value: " << hsv[2] << "\n";
-    }
-  } else {
+  // 输出像素信息
+  const int height = m_infoHeader.imageHeight;
+  const int width = m_infoHeader.imageWidth;
+  const int bitsPerPixel = m_infoHeader.bitsPerPixel;
 
-    // 输出像素信息
-    const int height = m_infoHeader.imageHeight;
-    const int width = m_infoHeader.imageWidth;
-    const int bitsPerPixel = m_infoHeader.bitsPerPixel;
+  if (bitsPerPixel != 24) {
+    throw std::runtime_error("bitsPerPixel error.\n");
+  }
 
-    if (bitsPerPixel != 24) {
-      throw std::runtime_error("bitsPerPixel error.\n");
-    }
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
+      int pixelIndex = (y * width + x) * (bitsPerPixel / 8);
 
-    for (int y = 0; y < height; ++y) {
-      for (int x = 0; x < width; ++x) {
-        int pixelIndex = (y * width + x) * (bitsPerPixel / 8);
+      uint8_t blue = m_imageData[pixelIndex];
+      uint8_t green = m_imageData[pixelIndex + 1];
+      uint8_t red = m_imageData[pixelIndex + 2];
 
-        uint8_t blue = m_imageData[pixelIndex];
-        uint8_t green = m_imageData[pixelIndex + 1];
-        uint8_t red = m_imageData[pixelIndex + 2];
+      // 输出每个像素的颜色
+      if (m_isHSV) {
+        std::cout << "Pixel at (" << x << ", " << y << "): "
+                  << "H: " << static_cast<int>(red)
+                  << ", S: " << static_cast<int>(green)
+                  << ", V: " << static_cast<int>(blue) << "\n";
 
-        // 输出每个像素的颜色
+      } else {
         std::cout << "Pixel at (" << x << ", " << y << "): "
                   << "Red: " << static_cast<int>(red)
                   << ", Green: " << static_cast<int>(green)
@@ -116,11 +116,10 @@ Image &Image::RGBtoHSV() {
         "This object is empty, can't call Image::print function.\n");
   }
 
-  if (!hsvColors.empty()) {
+  if (m_isHSV) {
     std::cerr << "This Image has hsv information"
               << "\n";
-
-    hsvColors.clear();
+    return *this;
   }
 
   const int height = m_infoHeader.imageHeight;
@@ -167,9 +166,12 @@ Image &Image::RGBtoHSV() {
       } else {
         H = 0.0;
       }
-      hsvColors.push_back({H, S, V});
+      m_imageData[pixelIndex] = static_cast<uint8_t>(H * 255.0 / 360.0);
+      m_imageData[pixelIndex + 1] = static_cast<uint8_t>(S * 255.0);
+      m_imageData[pixelIndex + 2] = static_cast<uint8_t>(V * 255.0);
     }
   }
+  m_isHSV = true;
   return *this;
 }
 
@@ -179,7 +181,7 @@ Image &Image::HSVtoRGB() {
         "This object is empty, can't call Image::print function.\n");
   }
 
-  if (hsvColors.empty()) {
+  if (m_isHSV) {
     std::cerr << "This Image has no hsv information"
               << "\n";
 
@@ -198,14 +200,14 @@ Image &Image::HSVtoRGB() {
     for (int x = 0; x < width; ++x) {
       int pixelIndex = (y * width + x) * (bitsPerPixel / 8);
 
-      double H = hsvColors[pixelIndex][0];
-      double S = hsvColors[pixelIndex][1];
-      double V = hsvColors[pixelIndex][2];
+      uint8_t H8 = m_imageData[pixelIndex];
+      uint8_t S8 = m_imageData[pixelIndex + 1];
+      uint8_t V8 = m_imageData[pixelIndex + 2];
 
       // 将HSV的值从[0,1]映射到[0,360]和[0,100]
-      H = H * 360.0;
-      S = S * 100.0;
-      V = V * 100.0;
+      double H = H8 * 360.0;
+      double S = S8 * 100.0;
+      double V = V8 * 100.0;
 
       double C = (V / 100) * (S / 100);
       double X = C * (1 - std::abs(fmod(H / 60.0, 2) - 1));
@@ -228,23 +230,27 @@ Image &Image::HSVtoRGB() {
       }
 
       // 将RGB的值从[0,1]映射到[0,255]
-      uint8_t R = (r + m) * 255;
-      uint8_t G = (g + m) * 255;
-      uint8_t B = (b + m) * 255;
+      uint8_t R = static_cast<uint8_t>(std::clamp((r + m) * 255, 0.0, 255.0));
+      uint8_t G = static_cast<uint8_t>(std::clamp((g + m) * 255, 0.0, 255.0));
+      uint8_t B = static_cast<uint8_t>(std::clamp((b + m) * 255, 0.0, 255.0));
 
       m_imageData[pixelIndex] = B;
       m_imageData[pixelIndex + 1] = G;
       m_imageData[pixelIndex + 2] = R;
     }
   }
+  m_isHSV = false;
   return *this;
 }
-
 
 Image &Image::toGray() {
   if (!m_isInitial) {
     throw std::runtime_error(
         "This object is empty, can't call Image::toGray function.\n");
+  }
+  if (m_isHSV) {
+    throw std::runtime_error(
+        "This object is turn to HSV,please turn to RGB .\n");
   }
 
   // 创建灰度图像

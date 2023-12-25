@@ -10,6 +10,7 @@ int main() {
         "/home/breslow/work/cpp/tool/opencv/reversePhoto/assets/fern.bmp");
 
     myImage.RGBtoHSV();
+    myImage.HSVtoRGB();
     myImage.print();
     // myImage.saveGrayImage("/home/breslow/work/cpp/tool/opencv/reversePhoto/assets/fern1.bmp");
 
