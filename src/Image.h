@@ -42,6 +42,7 @@ public:
   Image &print();
   Image &toGray();
   Image &RGBtoHSV();
+  Image &HSVtoRGB();
 
 protected:
   Image &push();

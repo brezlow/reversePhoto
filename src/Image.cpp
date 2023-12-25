@@ -173,6 +173,74 @@ Image &Image::RGBtoHSV() {
   return *this;
 }
 
+Image &Image::HSVtoRGB() {
+  if (!m_isInitial) {
+    throw std::runtime_error(
+        "This object is empty, can't call Image::print function.\n");
+  }
+
+  if (hsvColors.empty()) {
+    std::cerr << "This Image has no hsv information"
+              << "\n";
+
+    return *this;
+  }
+
+  const int height = m_infoHeader.imageHeight;
+  const int width = m_infoHeader.imageWidth;
+  const int bitsPerPixel = m_infoHeader.bitsPerPixel;
+
+  if (bitsPerPixel != 24) {
+    throw std::runtime_error("bitsPerPixel error.\n");
+  }
+
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
+      int pixelIndex = (y * width + x) * (bitsPerPixel / 8);
+
+      double H = hsvColors[pixelIndex][0];
+      double S = hsvColors[pixelIndex][1];
+      double V = hsvColors[pixelIndex][2];
+
+      // 将HSV的值从[0,1]映射到[0,360]和[0,100]
+      H = H * 360.0;
+      S = S * 100.0;
+      V = V * 100.0;
+
+      double C = (V / 100) * (S / 100);
+      double X = C * (1 - std::abs(fmod(H / 60.0, 2) - 1));
+      double m = (V / 100) - C;
+
+      double r, g, b;
+
+      if (H >= 0 && H < 60) {
+        r = C, g = X, b = 0;
+      } else if (H >= 60 && H < 120) {
+        r = X, g = C, b = 0;
+      } else if (H >= 120 && H < 180) {
+        r = 0, g = C, b = X;
+      } else if (H >= 180 && H < 240) {
+        r = 0, g = X, b = C;
+      } else if (H >= 240 && H < 300) {
+        r = X, g = 0, b = C;
+      } else {
+        r = C, g = 0, b = X;
+      }
+
+      // 将RGB的值从[0,1]映射到[0,255]
+      uint8_t R = (r + m) * 255;
+      uint8_t G = (g + m) * 255;
+      uint8_t B = (b + m) * 255;
+
+      m_imageData[pixelIndex] = B;
+      m_imageData[pixelIndex + 1] = G;
+      m_imageData[pixelIndex + 2] = R;
+    }
+  }
+  return *this;
+}
+
+
 Image &Image::toGray() {
   if (!m_isInitial) {
     throw std::runtime_error(
