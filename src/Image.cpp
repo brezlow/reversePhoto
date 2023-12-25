@@ -6,6 +6,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace feiteng {
 
@@ -294,6 +295,35 @@ Image &Image::toGray() {
   return *this;
 }
 
+// 高斯滤波函数
+Image &Image::gaussianBlur(double sigma) {
+  if (!m_isInitial) {
+    throw std::runtime_error(
+        "This object is empty, can't call Image::gaussianBlur function.\n");
+  }
+
+  // 获取图像的宽度、高度和每像素的位数
+  const int height = m_infoHeader.imageHeight;
+  const int width = m_infoHeader.imageWidth;
+  const int bitsPerPixel = m_infoHeader.bitsPerPixel;
+
+  if (bitsPerPixel != 24) {
+    throw std::runtime_error("bitsPerPixel error.\n");
+  }
+
+  int ksize = calculateKernelSize(sigma);
+
+  std::vector<double> kernel = calculateGaussianKernel(sigma, ksize);
+
+  // Apply horizontal Gaussian blur
+  applyHorizontalBlur(kernel, height, width);
+
+  // Apply vertical Gaussian blur
+  applyVerticalBlur(kernel, height, width);
+
+  return *this;
+}
+
 Image &Image::saveGrayImage(std::string newFilePath) {
   if (!m_isInitial) {
     throw std::runtime_error(
@@ -340,6 +370,52 @@ Image &Image::saveGrayImage(std::string newFilePath) {
     if (rowSize > m_infoHeader.imageWidth) {
       static const char padding[3] = {0, 0, 0};
       outFile.write(padding, rowSize - m_infoHeader.imageWidth);
+    }
+  }
+  outFile.close();
+
+  return *this;
+}
+
+Image &Image::saveColorImage(std::string newFilePath) {
+  if (!m_isInitial) {
+    throw std::runtime_error(
+        "This object is empty, can't call Image::saveColorImage function.\n");
+  }
+
+  // 如果未提供新文件路径，则使用默认命名规则
+  if (newFilePath.empty()) {
+    newFilePath = m_originalFilePath;
+  }
+  size_t extensionPos = newFilePath.rfind('.');
+  if (extensionPos != std::string::npos) {
+    newFilePath.replace(extensionPos, std::string::npos, "_color.bmp");
+  } else {
+    newFilePath += "_color.bmp";
+  }
+
+  // 创建并写入彩色图像文件
+  std::ofstream outFile(newFilePath, std::ios::binary);
+  if (!outFile) {
+    throw std::runtime_error("Unable to open file for writing: " + newFilePath +
+                             "\n");
+  }
+  outFile.write(reinterpret_cast<const char *>(&m_fileHeader),
+                sizeof(m_fileHeader));
+  outFile.write(reinterpret_cast<const char *>(&m_infoHeader),
+                sizeof(m_infoHeader));
+
+  // 写入图像数据
+  int rowSize = (m_infoHeader.imageWidth * 3 + 3) & (~3); // 行大小对齐到4字节
+  for (int y = 0; y < m_infoHeader.imageHeight; ++y) {
+    outFile.write(
+        reinterpret_cast<const char *>(m_imageData.data() + y * rowSize),
+        m_infoHeader.imageWidth * 3);
+
+    // 写入每行的填充字节（如果有）
+    if (rowSize > m_infoHeader.imageWidth * 3) {
+      static const char padding[3] = {0, 0, 0};
+      outFile.write(padding, rowSize - m_infoHeader.imageWidth * 3);
     }
   }
   outFile.close();
